@@ -1,0 +1,25 @@
+
+spring:
+  mvc:
+    pathmatch:
+      #swagger特定配置
+      matching-strategy: ant_path_matcher
+  servlet:
+    multipart:
+      #配置单个文件的最大大小
+      max-file-size: 5MB
+      #设置文件的总大小
+      max-request-size: 10MB
+s  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: true
+
+
+log.path: /opt/springboot/variable-generator/logs
+
+variable-generator:
+  path:
+    templates: ${variable-generator.root-dir}/Templates
+    output: ${variable-generator.root-dir}/Output
+    temp: ${variable-generator.root-dir}/Temp
+
