@@ -4,10 +4,9 @@ import cn.org.rapid_framework.generator.GeneratorFacade;
 import cn.org.rapid_framework.generator.GeneratorProperties;
 import cn.org.rapid_framework.generator.util.ZipUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.demo.model.FileDownloadVo;
-import com.example.demo.model.GenerateConfigBase;
-import com.example.demo.model.TemplateEntity;
-import com.example.demo.model.TemplateVo;
+import com.example.demo.consts.Constants;
+import com.example.demo.model.*;
+import com.example.demo.model.entity.TemplateEntity;
 import com.example.demo.service.IGenerateService;
 import com.example.demo.service.entity.ITemplateEntityService;
 import com.example.demo.util.JsonUtil;
@@ -24,8 +23,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.example.demo.consts.Constants.*;
 
@@ -102,6 +102,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 				} catch (Exception e) {
 					//目录或其中文件被占用无法删除的异常情况
 					log.error("[generate]error, filePath:{}", outputRootDir.getAbsolutePath());
+					//TODO 抛异常
 				}
 			}
 			//File destTemplateDir = new File(outputRootDir, templateName);
@@ -114,7 +115,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 		}
 	}
 
-	/**
+    /**
 	 * 上传zip包文件
 	 * 上传后，先做解压（临时目录），处理文件
 	 * TODO 考虑模板升级后，文件覆盖的场景;  上传的同步锁
@@ -132,7 +133,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 		synchronized (templateKey.intern()){
 			log.info("[uploadTemplateFile]enter, templateKey:{}, filename:{}", templateKey, zipFilefullname);
 			//为避免重复，增加时间戳后缀
-			String datetimeText = DateFormatUtils.format(currentTime, FORMAT_YYYYMMDDHHMMSS);
+			String datetimeText = DateFormatUtils.format(currentTime, FORMAT_YYYYMMDD_HHMMSS);
 			String newZipFilename = templateKey;//TODO + "_" + datetimeText;
 			String newZipFileFullname = newZipFilename + SUFFIX_ZIP;
 			//		if(!tmpDir.exists()){
@@ -199,7 +200,6 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 
 			//		FileUtils.moveDirectory(new File(tmpDir, templateKey), new File(templatesRootDir, templateKey));
 
-
 			if(TemplateEntity.isValid(templateEntity)){
 				//更新模板
 				templateEntity.setVersion(uploadedTemplateVo.getVersion());
@@ -228,7 +228,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 	}
 
 	/**
-	 *
+	 * 读取模板中的配置文件
 	 * @param uploadedTemplateConfig
 	 * @return
 	 * @throws Exception
@@ -249,6 +249,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 		}
 		return configSb;
 	}
+
 
 	@Override public File doZipFile(String sourceDirName) throws Exception {
 		File sourceDir = new File(outputRootDir, sourceDirName);
@@ -276,17 +277,18 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 
 	/**
 	 * 处理要输出的文件
-	 * @param generateConfig 参数
+	 * @param generateConfig 变量参数
 //	 * @param sourceTemplateDir 模板目录的文件对象
 	 * @param outputRootDir 输出的文件对象
 	 * @throws Exception
 	 */
 	private String processOutputFile(GenerateConfigBase generateConfig, File outputRootDir) throws Exception {
-		String templateKey = generateConfig.getTemplateKey();
+
+			String templateKey = generateConfig.getTemplateKey();
 		Map<String, String> varMap = generateConfig.getVarMap();
 
 		//为避免重复，增加时间戳后缀
-		String datetimeText = DateFormatUtils.format(new Date(), FORMAT_YYYYMMDDHHMMSS);
+		String datetimeText = DateFormatUtils.format(new Date(), FORMAT_YYYYMMDD_HHMMSS);
 		String outputDirName = templateKey + "_" + datetimeText;
 
 		//使用rapid-generator生成文件
@@ -316,6 +318,9 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 		g.getGenerator().setOutRootDir(outputRootDir.getAbsolutePath());
 		// 通过数据库表生成文件
 		g.generateByMap(varMap);
+
+//		g.generateByTable("a");
+
 		// 避免生成工具本地线程缓存，每次调用之后需要清除上下文并重载
 		GeneratorProperties.clear();
 		GeneratorProperties.reload();
@@ -334,7 +339,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 //		GeneratorFacade g = new GeneratorFacade();
 //		g.getGenerator().addTemplateRootDir(sourceTemplateDir);
 //		//为避免重复，增加时间戳后缀
-//		String datetimeText = DateFormatUtils.format(new Date(), FORMAT_YYYYMMDDHHMMSS);
+//		String datetimeText = DateFormatUtils.format(new Date(), FORMAT_YYYYMMDD_HHMMSS);
 //		String outputDirName = templateKey + "_" + datetimeText;
 //		File descTemplateFileDir = new File(outputRootDir, outputDirName);
 //		g.getGenerator().setOutRootDir(descTemplateFileDir.getAbsolutePath());
@@ -485,5 +490,50 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 		outputRootDir = new File(DIRNAME_OUTPUT);
 		/** 临时目录 */
 		tmpDir = new File(DIRNAME_TEMPLATE_TMP);
+	}
+
+	public static void main(String[] args) throws Exception {
+		List<GenerateTableVo> tableVos = new ArrayList<>();
+		for(int i=0;i<3;i++){
+			GenerateTableVo tableVo = new GenerateTableVo();
+			tableVo.setClassName("TbApp"+i);
+			tableVo.setName("tb_app"+i);
+			tableVo.setRemark("表注释"+i);
+
+			//TODO 映射字段类型到Java类型
+			GenerateTableVo.GenerateColumnVo columnVo1 = GenerateTableVo.GenerateColumnVo.builder().fieldType("Integer").fieldName("id").name("id").remark("字段1").build();
+			GenerateTableVo.GenerateColumnVo columnVo2 = GenerateTableVo.GenerateColumnVo.builder().fieldType("String").fieldName("name").name("name").remark("字段2").build();
+			tableVo.setColumns(Stream.of(columnVo1, columnVo2).collect(Collectors.toList()));
+
+			tableVos.add(tableVo);
+
+			Map<String, Object> varMap = new HashMap<>();
+			varMap.put("basepackage", "com.bruce");
+			varMap.put("author", "bruce");
+//			varMap.put("className", "TbApp"+i);
+			generate(varMap, tableVos);
+		}
+	}
+
+
+	private static void generate(Map<String, Object> varMap, List<GenerateTableVo> tableVoList) throws Exception {
+		if(tableVoList==null){
+			tableVoList = new ArrayList<>();
+		}
+
+		GeneratorFacade g = new GeneratorFacade();
+		g.getGenerator().addTemplateRootDir("D:\\git\\bruce\\backend\\vg\\templates");
+		g.getGenerator().setOutRootDir("D:\\git\\bruce\\backend\\vg\\output");
+
+//		Map<String, Object> tableMap = new HashMap<>();
+		for(GenerateTableVo loopItem: tableVoList){
+			//TODO 表生成的默认保留配置，如：表前缀，驼峰配置等
+
+			varMap.put(Constants.TABLE, loopItem);
+//			varMap.put("className", "abc_test"+i);
+			// 通过数据库表生成文件
+			g.generateByMap(varMap);
+		}
+
 	}
 }

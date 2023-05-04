@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.example.demo.model.entity.DataSourceEntity;
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,6 +48,7 @@ public class DataSourceVo implements Serializable {
 			result.setJdbcDriver(obj.getJdbcDriver());
 			result.setJdbcUrl(obj.getJdbcUrl());
 			result.setUsername(obj.getUsername());
+			result.setPassword(null);
 			if(obj.getDbType()!=null){
 				DbTypeVo dbTypeVo = DbTypeVo.loadDbType(obj.getDbType());
 				result.setDbType(dbTypeVo);
@@ -66,6 +68,7 @@ public class DataSourceVo implements Serializable {
 			result.setJdbcDriver(obj.getJdbcDriver());
 			result.setJdbcUrl(obj.getJdbcUrl());
 			result.setUsername(obj.getUsername());
+			result.setPassword(obj.getPassword());
 			result.setDbType(obj.getDbType()==null?null:obj.getDbType().getDbType());
 		}
 		return result;

@@ -2,16 +2,15 @@ package com.example.demo.controller;
 
 import com.example.demo.consts.Constants;
 import com.example.demo.model.DataSourceVo;
+import com.example.demo.model.MetadataTableVo;
 import com.example.demo.model.ResponseContent;
+import com.example.demo.service.IMetadataService;
 import com.example.demo.service.entity.IDataSourceEntityService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -31,7 +30,7 @@ public class DataSourceController {
 	@Autowired
 	private IDataSourceEntityService dataSourceEntityService;
 
-	@GetMapping("/listUserDatasources")
+	@GetMapping("/listDatasources")
 	@ApiOperation(value="获取我的数据源列表")
 	public ResponseContent<List<DataSourceVo>> listUserDatasources(Short dbType) throws Exception {
 		log.info("[listUserDatasource]enter, dbType:{}", dbType);
@@ -40,17 +39,18 @@ public class DataSourceController {
 	}
 
 
-	@GetMapping("/listUserTables")
+	@PostMapping("/createUserDatasource")
 	@ApiOperation(value="获取数据表")
-	public ResponseContent<List<String>> listUserTables(int datasourceId, String dbname) throws Exception {
-		log.info("[listUserTables]enter, datasourceId:{}, dbname:{}", datasourceId, dbname);
-		List<String> result = dataSourceEntityService.listUserTables(userId, datasourceId);
+	public ResponseContent<Integer> createUserDatasource(DataSourceVo datasrouce) throws Exception {
+		log.info("[createUserDatasource]enter, datasrouce:{}", datasrouce);
+		int result = 0;
+		dataSourceEntityService.createDatasource(userId, datasrouce);
 		return ResponseContent.buildSuccessResult(result);
 	}
 
 
 	@DeleteMapping("/delete")
-	@ApiOperation(value="获取数据表")
+	@ApiOperation(value="删除数据表")
 	public ResponseContent<Boolean> deleteDatasource(int datasourceId) throws Exception {
 		log.info("[deleteDatasource]enter, datasourceId:{}", datasourceId);
 		boolean result = dataSourceEntityService.deleteDatasource(userId, datasourceId);

@@ -30,7 +30,7 @@ public interface IGenerateService {
 	boolean uploadTemplateFile(int userId, MultipartFile templateZipFile) throws Exception;
 
 	/**
-	 * 压缩文件夹到文件
+	 * 压缩文件夹到zip文件
 	 * @param sourceDirName
 	 * @return
 	 */

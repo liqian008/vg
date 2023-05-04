@@ -1,7 +1,7 @@
 package com.example.demo.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.example.demo.model.GroupUserRelationEntity;
+import com.example.demo.model.entity.GroupUserRelationEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

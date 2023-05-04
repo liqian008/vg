@@ -26,6 +26,41 @@ public interface Constants {
 	/** 变量，模板描述的key */
 	String KEY_TEMPLATE_DESCRIPTION = "template_description";
 
-	String FORMAT_YYYYMMDDHHMMSS = "yyyyMMddHHmmss";
+	String FORMAT_YYYYMMDD_HHMMSS = "yyyyMMdd_HHmmss";
 
+
+	/** 生成代码的常量配置， start */
+
+
+	/** 生成代码方式的key */
+	String KEY_GENERATE_OUTPUT_TYPE = "generate_output_type";
+
+	/** 表前缀的key */
+	String KEY_TABLE_PREFIX = "table_prefix";
+
+	/** 表对象的key（freemarker中的key） */
+	String TABLE = "table";
+
+//	/** 表名 */
+//	String TABLE_NAME = "table_name";
+//	/** 表注释 */
+//	String TABLE_REMARK = "table_remark";
+//	/** 表对应的类名 */
+//	String TABLE_CLASS_NAME = "table_class_name";
+//
+//
+//
+//	/** 表对象中字段列表的key */
+//	String COLUMNS = "columns";
+//
+//	/** 字段名 */
+//	String COLUMN_NAME = "column_name";
+//	/** 字段注释 */
+//	String COLUMN_REMARK = "column_remark";
+//	/** 字段名 */
+//	String COLUMN_FIELD_TYPE = "column_field_type";
+//	/** 字段所对应的类属性名 */
+//	String COLUMN_FIELD_NAME = "column_field_name";
+
+	/** 生成代码的常量配置， end */
 }

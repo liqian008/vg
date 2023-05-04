@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.demo.exception.GenericRuntimeException;
 import com.example.demo.mapper.DataSourceEntityMapper;
 import com.example.demo.model.DataSourceVo;
-import com.example.demo.model.DataSourceEntity;
+import com.example.demo.model.entity.DataSourceEntity;
 import com.example.demo.service.entity.IDataSourceEntityService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,8 +41,21 @@ public class DataSourceEntityServiceImpl extends ServiceImpl<DataSourceEntityMap
 		return result;
 	}
 
+    @Override
+    public DataSourceEntity loadById(int userId, int datasourceId, boolean throwException) {
+		LambdaQueryWrapper<DataSourceEntity> wrapper = new LambdaQueryWrapper<>();
+		wrapper.eq(DataSourceEntity::getCreateUid, userId).eq(DataSourceEntity::getId, datasourceId);
+//		List<DataSourceEntity> dataList = dataSourceEntityService.list(wrapper);
+//		if(CollectionUtils.isNotEmpty(dataList)){
+//
+//		}
+		//TODO 统一
+		DataSourceEntity result = getOne(wrapper);
+		return result;
+    }
 
-	/**
+
+    /**
 	 *
 	 * @param datasourceId
 	 * @param throwException
@@ -57,55 +70,55 @@ public class DataSourceEntityServiceImpl extends ServiceImpl<DataSourceEntityMap
 		return result;
 	}
 
-	/**
-	 *
-	 * @param userId
-	 * @param datasourceId
-	 * @return
-	 */
-	@Override public List<String> listUserTables(int userId, int datasourceId) {
-		log.info("[listUserTables]enter, userId:{}, datasourceId:{}", userId, datasourceId);
-		List<String> result = new ArrayList<>();
-		DataSourceEntity dataSourceEntity = loadById(datasourceId, true);
-		Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		try {
-			conn = getConnection(dataSourceEntity);
-			DatabaseMetaData metaData = conn.getMetaData();
-			ps = conn.prepareStatement("show tables");
-			rs = ps.executeQuery();
-			while(rs.next()){
-				String loopName = rs.getString(1);
-				result.add(loopName);
-			}
-		} catch (SQLException e) {
-
-		}finally {
-			if(conn!=null){
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-			if(ps!=null){
-				try {
-					ps.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-			if(rs!=null){
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return result;
-	}
+//	/**
+//	 *
+//	 * @param userId
+//	 * @param datasourceId
+//	 * @return
+//	 */
+//	@Override public List<String> listUserTables(int userId, int datasourceId) {
+//		log.info("[listUserTables]enter, userId:{}, datasourceId:{}", userId, datasourceId);
+//		List<String> result = new ArrayList<>();
+//		DataSourceEntity dataSourceEntity = loadById(datasourceId, true);
+//		Connection conn = null;
+//		PreparedStatement ps = null;
+//		ResultSet rs = null;
+//		try {
+//			conn = getConnection(dataSourceEntity);
+//			DatabaseMetaData metaData = conn.getMetaData();
+//			ps = conn.prepareStatement("show tables");
+//			rs = ps.executeQuery();
+//			while(rs.next()){
+//				String loopName = rs.getString(1);
+//				result.add(loopName);
+//			}
+//		} catch (SQLException e) {
+//
+//		}finally {
+//			if(conn!=null){
+//				try {
+//					conn.close();
+//				} catch (SQLException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//			if(ps!=null){
+//				try {
+//					ps.close();
+//				} catch (SQLException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//			if(rs!=null){
+//				try {
+//					rs.close();
+//				} catch (SQLException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//		return result;
+//	}
 
 	@Override public boolean deleteDatasource(int userId, int datasourceId) {
 		log.info("[deleteDatasource]enter, userId:{}, datasourceId:{}", userId, datasourceId);
@@ -133,27 +146,7 @@ public class DataSourceEntityServiceImpl extends ServiceImpl<DataSourceEntityMap
 		return result;
 	}
 
-	/**
-	 *
-	 * @param dataSourceEntity
-	 * @return
-	 */
-	private Connection getConnection(DataSourceEntity dataSourceEntity) {
-		String jdbcUrl = dataSourceEntity.getJdbcUrl();
-		String jdbcDriver = dataSourceEntity.getJdbcDriver();
-		String username = dataSourceEntity.getUsername();
-		String password = dataSourceEntity.getPassword();
-		Connection conn = null;
-		try {
-			Class.forName(jdbcDriver);
-			conn = DriverManager.getConnection(jdbcUrl, username, password);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return conn;
-	}
+
 
 
 }

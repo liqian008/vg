@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.example.demo.model.entity.TemplateEntity;
 import com.example.demo.util.JsonUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -22,7 +23,6 @@ import java.util.List;
 public class TemplateVo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
 
 	/** 模版id */
 	private Integer id;

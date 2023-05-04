@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -10,29 +10,41 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 组用户关系Entity
+ * 模板Entity
  * @author bruce
  */
 @Data
-@TableName("tb_group_user_relation")
-public class GroupUserRelationEntity implements Serializable {
+@TableName("tb_template")
+public class TemplateEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	@TableId(value = "id", type = IdType.AUTO)
 	private Integer id;
 
+	/**
+	 * @see com.example.demo.enums.TemplateSourceTypeEnum
+	 */
 	@TableField
-	private Integer groupId;
+	private Short sourceType;
 
 	@TableField
-	private Integer userId;
-
-//	@TableField
-//	private Integer role;
+	private String templateKey;
 
 	@TableField
-	private short status;
+	private Integer version;
+
+	@TableField
+	private String title;
+
+	@TableField
+	private String description;
+
+	@TableField
+	private String path;
+
+	@TableField
+	private String config;
 
 	@TableField
 	private Integer createUid;
@@ -41,13 +53,17 @@ public class GroupUserRelationEntity implements Serializable {
 	private Integer updateUid;
 
 	@TableField
+	private short status;
+
+	@TableField
 	private Date createTime;
 
 	@TableField
 	private Date updateTime;
 
-	public static boolean isValid(UserEntity entity){
-		return entity!=null && entity.getId()!=null && entity.getId()>0;
+	public static boolean isValid(TemplateEntity obj){
+		return obj!=null && obj.getId()!=null && obj.getId()>0;
 
 	}
+
 }

@@ -22,6 +22,9 @@ public class TemplateVarDefinitionVo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	@ApiModelProperty("是否是系统变量")
+	private boolean isSystemVar = false;
+
 	@ApiModelProperty("变量key")
 	private String key;
 

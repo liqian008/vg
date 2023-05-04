@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -10,12 +10,12 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 模板Entity
+ * 数据源Entity
  * @author bruce
  */
 @Data
-@TableName("tb_template")
-public class TemplateEntity implements Serializable {
+@TableName("tb_datasource")
+public class DataSourceEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -23,45 +23,34 @@ public class TemplateEntity implements Serializable {
 	private Integer id;
 
 	/**
-	 * @see com.example.demo.enums.TemplateSourceTypeEnum
+	 * @see com.example.demo.enums.DbTypeEnum
 	 */
-	@TableField
-	private Short sourceType;
+	private Short dbType;
 
-	@TableField
-	private String templateKey;
-
-	@TableField
-	private Integer version;
-
-	@TableField
 	private String title;
 
-	@TableField
 	private String description;
 
-	@TableField
-	private String path;
+	private String jdbcUrl;
 
-	@TableField
-	private String config;
+	private String jdbcDriver;
 
-	@TableField
+	private String username;
+
+	private String password;
+
+	private Short status;
+
 	private Integer createUid;
 
-	@TableField
 	private Integer updateUid;
 
-	@TableField
-	private short status;
-
-	@TableField
 	private Date createTime;
 
-	@TableField
+
 	private Date updateTime;
 
-	public static boolean isValid(TemplateEntity obj){
+	public static boolean isValid(DataSourceEntity obj){
 		return obj!=null && obj.getId()!=null && obj.getId()>0;
 
 	}

@@ -1,7 +1,7 @@
 package com.example.demo.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.example.demo.model.UserEntity;
+import com.example.demo.model.entity.UserEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
