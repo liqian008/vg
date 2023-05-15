@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.model.metadata;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,26 +9,22 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 元数据-表vo对象
+ * 标准数据库Vo对象
  * @author bruce
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MetadataTableVo implements Serializable {
+public class MetadataDatabaseVo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private MetadataDatabaseVo database;
+	/** 数据库类型 */
+	private String dbName;
 
-	/** 数据表名称 */
-	private String tableName;
-	/** 注释 */
-	private String remark;
+	private List<MetadataTableVo> tables;
 
-	private List<MetadataColumnVo> columns;
 	/** TODO 补充其他属性 */
-
 
 }

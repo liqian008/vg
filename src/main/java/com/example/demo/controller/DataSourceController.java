@@ -2,9 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.consts.Constants;
 import com.example.demo.model.DataSourceVo;
-import com.example.demo.model.MetadataTableVo;
 import com.example.demo.model.ResponseContent;
-import com.example.demo.service.IMetadataService;
 import com.example.demo.service.entity.IDataSourceEntityService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

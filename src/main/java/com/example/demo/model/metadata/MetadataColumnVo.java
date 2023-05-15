@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.model.metadata;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * 元数据-字段vo对象
- * TODO 不同数据库类型下的泛型
+ * 标准元数据-字段vo对象
  * @author bruce
  */
 @Data
@@ -20,20 +19,22 @@ public class MetadataColumnVo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-
 	/** 字段表名称 */
 	private String column;
-	/** 原始字段类型 */
+	/** 数据字段类型 */
+	private Class dataTypeClazz;
+	/** 数据字段类型 */
 	private String dataType;
 
-	/** 索引key，用于判断主键 */
-	private String columnKey;
+//	/** 索引key，用于判断主键 */
+//	private String columnKey;
 	/** 是否唯一主键 */
 	private Boolean primaryKey;
 	/** 是否自增 */
 	private Boolean autoIncrement;
-	/** 扩展数据 */
-	private String extra;
+
+//	/** 扩展数据 */
+//	private String extra;
 
 	/** 长度 */
 	private Long length;
@@ -50,6 +51,16 @@ public class MetadataColumnVo implements Serializable {
 	private MetadataTableVo table;
 
 	/** TODO 补充其他属性 */
+
+
+	private void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
+
+
+	public String getDataType() {
+		return dataTypeClazz.getSimpleName();
+	}
 
 
 }

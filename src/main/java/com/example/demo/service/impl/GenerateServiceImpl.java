@@ -1,5 +1,6 @@
 package com.example.demo.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.org.rapid_framework.generator.GeneratorFacade;
 import cn.org.rapid_framework.generator.GeneratorProperties;
 import cn.org.rapid_framework.generator.util.ZipUtils;
@@ -7,11 +8,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.demo.consts.Constants;
 import com.example.demo.model.*;
 import com.example.demo.model.entity.TemplateEntity;
+import com.example.demo.model.metadata.MetadataColumnVo;
+import com.example.demo.model.metadata.MetadataTableVo;
 import com.example.demo.service.IGenerateService;
+import com.example.demo.service.IMetadataService;
 import com.example.demo.service.entity.ITemplateEntityService;
 import com.example.demo.util.JsonUtil;
 import com.example.demo.util.ZipUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -56,6 +61,8 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 
 	@Autowired
 	private ITemplateEntityService templateEntityService;
+	@Autowired
+	private IMetadataService metadataService;
 
 	/**
 	 * 预加载
@@ -85,17 +92,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 				throw new Exception("模板不存在，请检查！");
 			}
 
-//			File sourceTemplateDir = new File(DIRNAME_TEMPLATE_ROOT, templateKey);
-//			if (!sourceTemplateDir.exists()) {
-//				throw new Exception("模板不存在，请检查！");
-//				//			if(!templateZipFile.exists()){
-//				//				throw new Exception("模板不存在: " + templateZipFile.getAbsolutePath());
-//				//			}
-//				//			//有zip，没有文件目录，需要先解压缩zip
-//				//			ZipUtil.exctract(templateZipFile, DIRNAME_TEMPLATE_ROOT);
-//			}
-
-			//先清空Output目录
+			//先清空Output目录，FIXME Sass场景下有问题
 			if (outputRootDir.exists()) {
 				try {
 					FileUtils.cleanDirectory(outputRootDir);
@@ -283,17 +280,17 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 	 * @throws Exception
 	 */
 	private String processOutputFile(GenerateConfigBase generateConfig, File outputRootDir) throws Exception {
+		String templateKey = generateConfig.getTemplateKey();
 
-			String templateKey = generateConfig.getTemplateKey();
-		Map<String, String> varMap = generateConfig.getVarMap();
-
-		//为避免重复，增加时间戳后缀
-		String datetimeText = DateFormatUtils.format(new Date(), FORMAT_YYYYMMDD_HHMMSS);
-		String outputDirName = templateKey + "_" + datetimeText;
-
+		String outputDirName = templateKey;
+		if(GenerateConfigBase.isOutputZip(generateConfig)){
+			//zip包的方式（Saas化部署），为避免重复，增加时间戳后缀
+			String datetimeText = DateFormatUtils.format(new Date(), FORMAT_YYYYMMDD_HHMMSS);
+			outputDirName = templateKey + "_" + datetimeText;
+		}
 		//使用rapid-generator生成文件
 		File destDirFile = new File(outputRootDir, outputDirName);
-		doRapidGenerate(new File(templatesRootDir, templateKey), destDirFile, varMap);
+		doRapidGenerate(new File(templatesRootDir, templateKey), destDirFile, generateConfig);
 //		String outputDirName = doRapidGenerate(templatesRootDir, outputRootDir, varMap);
 
 		//清除无用的文件
@@ -307,25 +304,119 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 	 * 使用rapid-generator生成文件
 	 * @param sourceTemplateDir
 	 * @param outputRootDir
-	 * @param varMap
+	 * @param generateConfig
 	 * @throws Exception
 	 */
-	private void doRapidGenerate(File sourceTemplateDir, File outputRootDir, Map<String, String> varMap) throws Exception {
-		GeneratorFacade g = new GeneratorFacade();
-		g.getGenerator().addTemplateRootDir(sourceTemplateDir);
+
+	private void doRapidGenerate(File sourceTemplateDir, File outputRootDir, GenerateConfigBase generateConfig) throws Exception {
+//	private void doRapidGenerate(File sourceTemplateDir, File outputRootDir, Map<String, String> varMap) throws Exception {
+		GeneratorFacade generator = new GeneratorFacade();
+		generator.getGenerator().addTemplateRootDir(sourceTemplateDir);
 
 //		File descTemplateFileDir = new File(outputRootDir, outputDirName);
-		g.getGenerator().setOutRootDir(outputRootDir.getAbsolutePath());
-		// 通过数据库表生成文件
-		g.generateByMap(varMap);
+		generator.getGenerator().setOutRootDir(outputRootDir.getAbsolutePath());
+		Map<String, String> varMap = generateConfig.getVarMap();
 
-//		g.generateByTable("a");
+		if(GenerateConfigBase.isGenerateCrud(generateConfig)){
+			// CRUD模式
 
-		// 避免生成工具本地线程缓存，每次调用之后需要清除上下文并重载
-		GeneratorProperties.clear();
-		GeneratorProperties.reload();
+			// 根据配置，获取元数据信息
+			int datasourceId = generateConfig.getTableCrudConfig().getDatasourceId();
+			String dbName = generateConfig.getTableCrudConfig().getDbName();
+			List<GenerateConfigBase.TableInfo> tables = generateConfig.getTableCrudConfig().getTables();
+			List<String> tableNames = tables==null?null:tables.stream().map(item->item.getTableName()).collect(Collectors.toList());
 
+			List<MetadataTableVo> metadataTableVos = metadataService.listUserTables(1, datasourceId, dbName, tableNames==null?null:new HashSet<>(tableNames));
+
+			// 构造建表所需的变量
+			List<GenerateTableVo> generateTableVos = convert(generateConfig, metadataTableVos);
+
+			//for循环生成表操作相关内容
+			for(GenerateTableVo loopTableVo: generateTableVos) {
+				//TODO 克隆varMap数据（序列化反序列化，或者能保证能覆盖式替换变量值，避免复用）
+				Map<String, Object> crudVarMap = new HashMap<>(generateConfig.getVarMap());
+				crudVarMap.put(Constants.TABLE, loopTableVo);
+
+				generator.generateByMap(crudVarMap);
+				// 避免生成工具本地线程缓存，每次调用之后需要清除上下文并重载
+				GeneratorProperties.clear();
+				GeneratorProperties.reload();
+			}
+		}else{
+			// 项目工程文件模式
+
+			generator.generateByMap(varMap);
+			// 避免生成工具本地线程缓存，每次调用之后需要清除上下文并重载
+			GeneratorProperties.clear();
+			GeneratorProperties.reload();
+		}
 //		return outputDirName;
+	}
+
+	/**
+	 * 将元数据信息转为generate所需的对象信息
+	 *
+	 * @param generateConfig
+	 * @param metadataTableVos
+	 * @return
+	 */
+	private List<GenerateTableVo> convert(GenerateConfigBase generateConfig, List<MetadataTableVo> metadataTableVos) {
+		List<GenerateTableVo> result = new ArrayList<>();
+		if(CollectionUtils.isNotEmpty(metadataTableVos)){
+
+			String globalTablenamePrefix = null;
+			final Map<String, String> tablenamePrefixMap = new HashMap<>();
+			boolean chooseAll = generateConfig.getTableCrudConfig().isChooseAll();
+			if(chooseAll){
+				globalTablenamePrefix = generateConfig.getTableCrudConfig().getTablenamePrefix();
+			}else{
+				//非全局模式，则需逐一替换表名的前缀，先构造表名的map数据做缓存
+				generateConfig.getTableCrudConfig().getTables().stream().forEach(
+						item -> tablenamePrefixMap.put(item.getTableName(), item.getTablenamePrefix()));
+			}
+
+			for(MetadataTableVo loopTable: metadataTableVos){
+				//处理表名的前缀（全局or逐一处理）
+				String tablenamePrefix;
+				if(chooseAll){
+					tablenamePrefix = globalTablenamePrefix;
+				}else{
+					tablenamePrefix = tablenamePrefixMap.get(loopTable.getTableName());
+				}
+
+				//类名&变量的驼峰命名（TODO 名称考虑支持自定义扩展）
+				String camelCaseText =  StrUtil.toCamelCase(StringUtils.replace(loopTable.getTableName(), tablenamePrefix, ""));
+				String className = buildClassName(camelCaseText);
+
+				GenerateTableVo tableVo = GenerateTableVo.builder()
+						.name(loopTable.getTableName()).remark(loopTable.getRemark()).className(className).build();
+
+				List<GenerateTableVo.GenerateColumnVo> columnVos = new ArrayList<>();
+
+				List<MetadataColumnVo> columns = loopTable.getColumns();
+				for(MetadataColumnVo loopColumn: columns){
+					GenerateTableVo.GenerateColumnVo columnVo = GenerateTableVo.GenerateColumnVo.builder()
+							.name(loopColumn.getColumn()).remark(loopColumn.getRemark()).fieldType(loopColumn.getDataType())
+							//驼峰
+							.fieldName(buildClassName(loopColumn.getColumn()))
+							.build();
+					columnVos.add(columnVo);
+				}
+				tableVo.setColumns(columnVos);
+				result.add(tableVo);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 生成className
+	 * @param text
+	 * @return
+	 */
+	private String buildClassName(String text) {
+		return StringUtils.upperCase(StringUtils.substring(text, 0, 1))
+							+  StringUtils.substring(text, 1, text.length());
 	}
 
 //	/**
@@ -493,26 +584,34 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 	}
 
 	public static void main(String[] args) throws Exception {
-		List<GenerateTableVo> tableVos = new ArrayList<>();
-		for(int i=0;i<3;i++){
-			GenerateTableVo tableVo = new GenerateTableVo();
-			tableVo.setClassName("TbApp"+i);
-			tableVo.setName("tb_app"+i);
-			tableVo.setRemark("表注释"+i);
 
-			//TODO 映射字段类型到Java类型
-			GenerateTableVo.GenerateColumnVo columnVo1 = GenerateTableVo.GenerateColumnVo.builder().fieldType("Integer").fieldName("id").name("id").remark("字段1").build();
-			GenerateTableVo.GenerateColumnVo columnVo2 = GenerateTableVo.GenerateColumnVo.builder().fieldType("String").fieldName("name").name("name").remark("字段2").build();
-			tableVo.setColumns(Stream.of(columnVo1, columnVo2).collect(Collectors.toList()));
-
-			tableVos.add(tableVo);
-
-			Map<String, Object> varMap = new HashMap<>();
-			varMap.put("basepackage", "com.bruce");
-			varMap.put("author", "bruce");
-//			varMap.put("className", "TbApp"+i);
-			generate(varMap, tableVos);
-		}
+		System.out.println(StrUtil.toCamelCase("a_b"));
+//		List<GenerateTableVo> tableVos = new ArrayList<>();
+//		for(int i=0;i<3;i++){
+//			GenerateTableVo tableVo = new GenerateTableVo();
+//			tableVo.setClassName("TbApp"+i);
+//			tableVo.setName("tb_app"+i);
+//			tableVo.setRemark("表注释"+i);
+//
+//
+//			Map<String, Object> extraData = new HashMap<>();
+//			extraData.put("businessName", "app");
+//			extraData.put("path", "/app");
+//			tableVo.setExtraData(extraData);
+//
+//			//TODO 映射字段类型到Java类型
+//			GenerateTableVo.GenerateColumnVo columnVo1 = GenerateTableVo.GenerateColumnVo.builder().fieldType("Integer").fieldName("id").name("id").remark("字段1").build();
+//			GenerateTableVo.GenerateColumnVo columnVo2 = GenerateTableVo.GenerateColumnVo.builder().fieldType("String").fieldName("name").name("name").remark("字段2").build();
+//			tableVo.setColumns(Stream.of(columnVo1, columnVo2).collect(Collectors.toList()));
+//
+//			tableVos.add(tableVo);
+//
+//			Map<String, Object> varMap = new HashMap<>();
+//			varMap.put("basepackage", "com.bruce");
+//			varMap.put("author", "bruce");
+////			varMap.put("className", "TbApp"+i);
+//			generate(varMap, tableVos);
+//		}
 	}
 
 

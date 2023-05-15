@@ -1,5 +1,7 @@
 package com.example.demo.consts;
 
+import com.example.demo.enums.DbTypeEnum;
+
 /**
  * @author bruce
  */
@@ -40,6 +42,14 @@ public interface Constants {
 
 	/** 表对象的key（freemarker中的key） */
 	String TABLE = "table";
+
+	/** Mysql数据库类型 */
+	String DB_TYPE_MSYQL = "MYSQL";
+	/** Oracle数据库类型 */
+	String DB_TYPE_ORACLE = "ORACLE";
+
+	/** 元数据process后缀名 */
+	String METADATA_PROCESSOR_SUFFIX = "Processor";
 
 //	/** 表名 */
 //	String TABLE_NAME = "table_name";

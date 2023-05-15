@@ -15,6 +15,10 @@ public class GenericRuntimeException extends RuntimeException{
 		super();
 	}
 
+	public GenericRuntimeException(String message){
+		super(message);
+	}
+
 	public GenericRuntimeException(int code, String message){
 		super(message);
 		this.code = code;

@@ -101,6 +101,7 @@ hs_err_pid*
 .metadata
 #bin/
 tmp/
+templates/
 output/
 *.tmp
 *.bak

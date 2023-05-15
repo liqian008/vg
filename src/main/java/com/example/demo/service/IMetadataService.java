@@ -1,8 +1,9 @@
 package com.example.demo.service;
 
-import com.example.demo.model.MetadataColumnVo;
-import com.example.demo.model.MetadataDatabaseVo;
-import com.example.demo.model.MetadataTableVo;
+import com.example.demo.metadata.processor.IMetadataDbProcessor;
+import com.example.demo.model.metadata.MetadataColumnVo;
+import com.example.demo.model.metadata.MetadataDatabaseVo;
+import com.example.demo.model.metadata.MetadataTableVo;
 
 import java.util.List;
 import java.util.Set;
@@ -12,6 +13,13 @@ import java.util.Set;
  * @author bruce
  */
 public interface IMetadataService {
+
+	/**
+	 * 根据数据库类型获取对应的处理类
+	 * @param dbTypeVal
+	 * @return
+	 */
+	IMetadataDbProcessor loadProcessorByDbType(short dbTypeVal);
 
 	/**
 	 * 列出数据库
@@ -31,16 +39,15 @@ public interface IMetadataService {
 	 */
 	List<MetadataTableVo> listUserTables(int userId, int datasourceId, String dbName);
 
-
-//	/**
-//	 * 列出数据表
-//	 * @param userId
-//	 * @param datasourceId
-//	 * @param dbName
-//	 * @param tableNames 待处理的表名
-//	 * @return
-//	 */
-//	List<MetadataTableVo> listUserTables(int userId, int datasourceId, String dbName, String... tableNames);
+	/**
+	 * 获取指定数据表的元数据信息
+	 * @param userId
+	 * @param datasourceId
+	 * @param dbName
+	 * @param tableNameSet
+	 * @return
+	 */
+	List<MetadataTableVo> listUserTables(int userId, int datasourceId, String dbName, Set<String> tableNameSet);
 
 
 
@@ -49,9 +56,9 @@ public interface IMetadataService {
 	 * @param userId
 	 * @param datasourceId
 	 * @param dbName
-	 * @param tableName
+	 * @param tableNameSet
 	 * @return
 	 */
-	List<MetadataColumnVo> listTableColumns(int userId, int datasourceId, String dbName, String tableName);
+	List<MetadataColumnVo> listTableColumns(int userId, int datasourceId, String dbName, Set<String> tableNameSet);
 
 }
