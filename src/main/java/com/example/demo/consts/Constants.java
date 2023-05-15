@@ -48,6 +48,11 @@ public interface Constants {
 	/** Oracle数据库类型 */
 	String DB_TYPE_ORACLE = "ORACLE";
 
+	/** 首字母大写 */
+	String NAMED_CAMEL_CASE = "camel";
+	/** 类名 */
+	String NAMED_CLASS_CASE = "class";
+
 	/** 元数据process后缀名 */
 	String METADATA_PROCESSOR_SUFFIX = "Processor";
 

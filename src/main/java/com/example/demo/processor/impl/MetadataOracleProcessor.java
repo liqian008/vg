@@ -1,4 +1,4 @@
-package com.example.demo.metadata.processor;
+package com.example.demo.processor.impl;
 
 import com.example.demo.consts.Constants;
 import com.example.demo.enums.DbTypeEnum;
@@ -6,17 +6,13 @@ import com.example.demo.model.entity.DataSourceEntity;
 import com.example.demo.model.metadata.MetadataColumnVo;
 import com.example.demo.model.metadata.MetadataDatabaseVo;
 import com.example.demo.model.metadata.MetadataTableVo;
-import com.example.demo.service.entity.IDataSourceEntityService;
+import com.example.demo.processor.IMetadataDbProcessor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Oracle元数据实现类

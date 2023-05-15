@@ -10,6 +10,8 @@ import com.example.demo.model.*;
 import com.example.demo.model.entity.TemplateEntity;
 import com.example.demo.model.metadata.MetadataColumnVo;
 import com.example.demo.model.metadata.MetadataTableVo;
+import com.example.demo.processor.INamedProcessor;
+import com.example.demo.processor.ProcessorManager;
 import com.example.demo.service.IGenerateService;
 import com.example.demo.service.IMetadataService;
 import com.example.demo.service.entity.ITemplateEntityService;
@@ -30,7 +32,6 @@ import javax.annotation.PostConstruct;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.example.demo.consts.Constants.*;
 
@@ -63,6 +64,11 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 	private ITemplateEntityService templateEntityService;
 	@Autowired
 	private IMetadataService metadataService;
+	@Autowired
+	private ProcessorManager processorManager;
+//	@Autowired
+//	private ApplicationContextHolder applicationContextHolder;
+
 
 	/**
 	 * 预加载
@@ -333,7 +339,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 
 			//for循环生成表操作相关内容
 			for(GenerateTableVo loopTableVo: generateTableVos) {
-				//TODO 克隆varMap数据（序列化反序列化，或者能保证能覆盖式替换变量值，避免复用）
+				//TODO 克隆varMap数据（序列化反序列化，或者能保证能覆盖式替换变量值，避免被复用后产生异常）
 				Map<String, Object> crudVarMap = new HashMap<>(generateConfig.getVarMap());
 				crudVarMap.put(Constants.TABLE, loopTableVo);
 
@@ -366,13 +372,18 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 
 			String globalTablenamePrefix = null;
 			final Map<String, String> tablenamePrefixMap = new HashMap<>();
+			final Map<String, Map<String, Object>> tableExtraDataMap = new HashMap<>();
+			String namedType = generateConfig.getTableCrudConfig().getNamedType();
 			boolean chooseAll = generateConfig.getTableCrudConfig().isChooseAll();
 			if(chooseAll){
 				globalTablenamePrefix = generateConfig.getTableCrudConfig().getTablenamePrefix();
 			}else{
 				//非全局模式，则需逐一替换表名的前缀，先构造表名的map数据做缓存
 				generateConfig.getTableCrudConfig().getTables().stream().forEach(
-						item -> tablenamePrefixMap.put(item.getTableName(), item.getTablenamePrefix()));
+						item -> {
+							tablenamePrefixMap.put(item.getTableName(), item.getTablenamePrefix());
+							tableExtraDataMap.put(item.getTableName(), item.getExtraData());
+						});
 			}
 
 			for(MetadataTableVo loopTable: metadataTableVos){
@@ -384,40 +395,54 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 					tablenamePrefix = tablenamePrefixMap.get(loopTable.getTableName());
 				}
 
-				//类名&变量的驼峰命名（TODO 名称考虑支持自定义扩展）
-				String camelCaseText =  StrUtil.toCamelCase(StringUtils.replace(loopTable.getTableName(), tablenamePrefix, ""));
-				String className = buildClassName(camelCaseText);
+				//类名的命名（支持自定义扩展）
+				INamedProcessor tableNameProcessor = processorManager.loadNamedProcessor(namedType);
+//				INamedProcessor tableNameProcessor = applicationContextHolder.getApplicationContext().getBean(namedType + METADATA_PROCESSOR_SUFFIX, INamedProcessor.class);
+				String className = tableNameProcessor.processName(StringUtils.replace(loopTable.getTableName(), tablenamePrefix, ""));
 
+				//原始表名
+				String tableName = loopTable.getTableName();
 				GenerateTableVo tableVo = GenerateTableVo.builder()
 						.name(loopTable.getTableName()).remark(loopTable.getRemark()).className(className).build();
 
 				List<GenerateTableVo.GenerateColumnVo> columnVos = new ArrayList<>();
 
+				//字段（Field）的命名（支持自定义扩展）
+				INamedProcessor fieldNameProcessor = processorManager.loadNamedProcessor("camel");
+//				INamedProcessor fieldNameProcessor = applicationContextHolder.getApplicationContext().getBean("camel" + METADATA_PROCESSOR_SUFFIX, INamedProcessor.class);
+
 				List<MetadataColumnVo> columns = loopTable.getColumns();
 				for(MetadataColumnVo loopColumn: columns){
+					String fieldName = fieldNameProcessor.processName(loopColumn.getColumn());
 					GenerateTableVo.GenerateColumnVo columnVo = GenerateTableVo.GenerateColumnVo.builder()
 							.name(loopColumn.getColumn()).remark(loopColumn.getRemark()).fieldType(loopColumn.getDataType())
+							.isDate(loopColumn.getIsDate())
+							.isDatetime(loopColumn.getIsDatetime())
 							//驼峰
-							.fieldName(buildClassName(loopColumn.getColumn()))
+							.fieldName(fieldName)
 							.build();
 					columnVos.add(columnVo);
 				}
 				tableVo.setColumns(columnVos);
+				tableVo.setExtraData(tableExtraDataMap.get(tableName));
+
+				tableVo.setContainsDate(loopTable.isContainsDate());
+				tableVo.setContainsDatetime(loopTable.isContainsDatetime());
 				result.add(tableVo);
 			}
 		}
 		return result;
 	}
 
-	/**
-	 * 生成className
-	 * @param text
-	 * @return
-	 */
-	private String buildClassName(String text) {
-		return StringUtils.upperCase(StringUtils.substring(text, 0, 1))
-							+  StringUtils.substring(text, 1, text.length());
-	}
+//	/**
+//	 * 生成className
+//	 * @param text
+//	 * @return
+//	 */
+//	private String buildClassName(String text) {
+//		return StringUtils.upperCase(StringUtils.substring(text, 0, 1))
+//							+  StringUtils.substring(text, 1, text.length());
+//	}
 
 //	/**
 //	 * 使用rapid-generator生成文件
@@ -453,126 +478,6 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 		//模板配置文件
 		FileUtils.deleteQuietly(new File(destTemplateDir, FILENAME_TEMPLATE_CONFIG));
 	}
-
-
-
-	//	/**
-//	 * 加载变量文件到properties
-//	 * @param destTemplateDir
-//	 * @return
-//	 * @throws Exception
-//	 */
-//	private TemplateVo initTemplateConfig(File destTemplateDir) throws Exception {
-//		File templateConfigFile = new File(destTemplateDir, FILENAME_TEMPLATE_CONFIG);
-//		if (!templateConfigFile.exists()) {
-//			throw new Exception("模板不规范，模板配置不存在，请检查: " + templateConfigFile.getAbsolutePath());
-//		}
-//		StringBuilder sb = readConfigText(templateConfigFile);
-//		TemplateVo result = GSON.fromJson(sb.toString(), TemplateVo.class);
-//		return result;
-//	}
-
-
-
-//	/**
-//	 * 加载变量文件到properties
-//	 * @param destTemplateDir
-//	 * @return
-//	 * @throws Exception
-//	 */
-//	@Deprecated
-//	private Properties initVarProperties(File destTemplateDir) throws Exception {
-//		File variableFile = new File(destTemplateDir, FILENAME_TEMPLATE_CONFIG);
-////		File variableFile = new File(destTemplateDir, FILENAME_VAR_PROP);
-//		if (!variableFile.exists()) {
-//			throw new Exception("模板不规范，模板配置不存在，请检查: " + variableFile.getAbsolutePath());
-//		}
-//		InputStream inputStream = new FileInputStream(variableFile);
-//		Properties variableProperties = new Properties();
-//		try {
-//			variableProperties.load(new InputStreamReader(inputStream, CHARSET_UTF8));
-//		} catch (IOException e) {
-//			log.error("[initVarProperties]error, destTemplateDir:{}, exception:{}", destTemplateDir, e);
-//			throw new Exception("模板配置文件加载失败，请检查: " + variableFile.getAbsolutePath());
-//		} finally {
-//			inputStream.close();
-//		}
-//
-//		if(StringUtils.isBlank((String) variableProperties.get(KEY_TEMPLATE_NAME))){
-//			throw new Exception("选定模板中变量"+KEY_TEMPLATE_NAME+"不存在，请检查！" );
-//		}
-//		if(StringUtils.isBlank((String) variableProperties.get(KEY_TEMPLATE_DESCRIPTION))){
-//			throw new Exception("选定模板中变量"+KEY_TEMPLATE_DESCRIPTION+"不存在，请检查！" );
-//		}
-//		return variableProperties;
-//	}
-
-
-
-	//	/**
-	//	 * 获取模板列表
-	//	 * @return
-	//	 */
-	//	@Override public List<TemplateVo> getTemplateList() throws Exception {
-	//		File[] templateDirs = listTemplateDirs(templatesRootFile);
-	//		List<TemplateVo> result = new ArrayList<>();
-	//		for(File templateDirFile: templateDirs) {
-	//			TemplateVo templateConfigVo = initTemplateConfig(templateDirFile);
-	//			templateConfigVo.setTemplateKey(templateDirFile.getName());
-	////			Properties variableProperties = initVarProperties(templateDirFile);
-	////			String templateName = (String) variableProperties.get(KEY_TEMPLATE_NAME);
-	////			String templateDescription = (String) variableProperties.get(KEY_TEMPLATE_DESCRIPTION);
-	////			TemplateVo templateVo = TemplateVo.builder()
-	////					.dirname(templateDirFile.getName()).title(templateName).description(templateDescription)
-	////					.build();
-	//			//new TemplateVo(templateDirFile.getName(), templateName, templateDescription, null);
-	//			result.add(templateConfigVo);
-	//		}
-	//		log.info("[getTemplateList]result:{}", result);
-	//		return result;
-	//	}
-
-
-	//	@Override public Set<VarDefinitionVo> loadTemplateVars(String templateName) throws Exception {
-	//		log.info("[loadTemplatVars]enter, templateName:{}", templateName);
-	//		LinkedHashSet<VarDefinitionVo> result = new LinkedHashSet<>();
-	//		File sourceTemplateDir = new File(templatesRootFile, templateName);
-	//		TemplateVo templateVo = initTemplateConfig(sourceTemplateDir);
-	//
-	//
-	//
-	////		Properties varProperties = initVarProperties(sourceTemplateDir);
-	////		Set<Map.Entry<Object, Object>> entries = varProperties.entrySet();
-	////		for(Map.Entry entry: entries){
-	////			String key = (String) entry.getKey();
-	////			VarDefinitionVo varDefinitionVo = new VarDefinitionVo();
-	////			varDefinitionVo.setKey(key);
-	////			varDefinitionVo.setRequired(true);
-	////			result.add(varDefinitionVo);
-	////		}
-	//		log.info("[loadTemplatVars]result:{}, templateName:{}", result, templateName);
-	//
-	//		return result;
-	//	}
-
-
-//	/**
-//	 *
-//	 * @param templatesRootFile
-//	 * @return
-//	 * @throws Exception
-//	 */
-//	private File[] listTemplateDirs(File templatesRootFile) throws Exception {
-//		if(!templatesRootFile.exists()){
-//			throw new Exception("模板目录不存在，请检查: " + templatesRootFile.getAbsolutePath());
-//		}
-//		File[] templateDirs = templatesRootFile.listFiles(file -> file != null && file.isDirectory());
-//		if(templateDirs==null || templateDirs.length<=0){
-//			throw new Exception("模板ROOT目录下无模板文件，请检查: " + templatesRootFile.getAbsolutePath());
-//		}
-//		return templateDirs;
-//	}
-
 
 	@Override public void afterPropertiesSet() throws Exception {
 		/** 模板存放目录 */
@@ -615,24 +520,24 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 	}
 
 
-	private static void generate(Map<String, Object> varMap, List<GenerateTableVo> tableVoList) throws Exception {
-		if(tableVoList==null){
-			tableVoList = new ArrayList<>();
-		}
-
-		GeneratorFacade g = new GeneratorFacade();
-		g.getGenerator().addTemplateRootDir("D:\\git\\bruce\\backend\\vg\\templates");
-		g.getGenerator().setOutRootDir("D:\\git\\bruce\\backend\\vg\\output");
-
-//		Map<String, Object> tableMap = new HashMap<>();
-		for(GenerateTableVo loopItem: tableVoList){
-			//TODO 表生成的默认保留配置，如：表前缀，驼峰配置等
-
-			varMap.put(Constants.TABLE, loopItem);
-//			varMap.put("className", "abc_test"+i);
-			// 通过数据库表生成文件
-			g.generateByMap(varMap);
-		}
-
-	}
+//	private static void generate(Map<String, Object> varMap, List<GenerateTableVo> tableVoList) throws Exception {
+//		if(tableVoList==null){
+//			tableVoList = new ArrayList<>();
+//		}
+//
+//		GeneratorFacade g = new GeneratorFacade();
+//		g.getGenerator().addTemplateRootDir("D:\\git\\bruce\\backend\\vg\\templates");
+//		g.getGenerator().setOutRootDir("D:\\git\\bruce\\backend\\vg\\output");
+//
+////		Map<String, Object> tableMap = new HashMap<>();
+//		for(GenerateTableVo loopItem: tableVoList){
+//			//TODO 表生成的默认保留配置，如：表前缀，驼峰配置等
+//
+//			varMap.put(Constants.TABLE, loopItem);
+////			varMap.put("className", "abc_test"+i);
+//			// 通过数据库表生成文件
+//			g.generateByMap(varMap);
+//		}
+//
+//	}
 }

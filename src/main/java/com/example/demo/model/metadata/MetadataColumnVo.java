@@ -28,24 +28,29 @@ public class MetadataColumnVo implements Serializable {
 
 //	/** 索引key，用于判断主键 */
 //	private String columnKey;
-	/** 是否唯一主键 */
-	private Boolean primaryKey;
+	/** 是否是唯一主键 */
+	private Boolean isPrimaryKey;
+//	/** 是否是联合主键 */
+//	private Boolean isMulKey;
 	/** 是否自增 */
-	private Boolean autoIncrement;
+	private Boolean isAutoIncrement;
+	/** 是否为空 */
+	private Boolean isNullable;
 
-//	/** 扩展数据 */
-//	private String extra;
+	/** 是否是日期类型 */
+	private Boolean isDate;
+	/** 是否是时间类型（注意区别于日期类型） */
+	private Boolean isDatetime;
 
 	/** 长度 */
 	private Long length;
-	/** 是否为空 */
-	private Boolean nullable;
 	/** 默认值 */
 	private String defaultValue;
 	/** 注释 */
 	private String remark;
 	/** 编码 */
 	private String charset;
+
 
 	/** 对应的表对象 */
 	private MetadataTableVo table;

@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.metadata.processor.IMetadataDbProcessor;
+import com.example.demo.processor.IMetadataDbProcessor;
 import com.example.demo.model.metadata.MetadataColumnVo;
 import com.example.demo.model.metadata.MetadataDatabaseVo;
 import com.example.demo.model.metadata.MetadataTableVo;
@@ -14,12 +14,12 @@ import java.util.Set;
  */
 public interface IMetadataService {
 
-	/**
-	 * 根据数据库类型获取对应的处理类
-	 * @param dbTypeVal
-	 * @return
-	 */
-	IMetadataDbProcessor loadProcessorByDbType(short dbTypeVal);
+//	/**
+//	 * 根据数据库类型获取对应的处理类
+//	 * @param dbTypeVal
+//	 * @return
+//	 */
+//	IMetadataDbProcessor loadDbProcessorByDbType(short dbTypeVal);
 
 	/**
 	 * 列出数据库

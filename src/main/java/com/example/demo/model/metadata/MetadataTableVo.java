@@ -27,6 +27,11 @@ public class MetadataTableVo implements Serializable {
 	/** 注释 */
 	private String remark;
 
+	/** 是否包含日期类型 */
+	private boolean containsDate;
+	/** 是否包含时间类型 */
+	private boolean containsDatetime;
+
 	private List<MetadataColumnVo> columns;
 	/** TODO 补充其他属性 */
 

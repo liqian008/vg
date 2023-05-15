@@ -1,4 +1,4 @@
-package com.example.demo.metadata.processor;
+package com.example.demo.processor.impl;
 
 import com.example.demo.consts.Constants;
 import com.example.demo.enums.DbTypeEnum;
@@ -6,8 +6,10 @@ import com.example.demo.model.entity.DataSourceEntity;
 import com.example.demo.model.metadata.MetadataColumnVo;
 import com.example.demo.model.metadata.MetadataDatabaseVo;
 import com.example.demo.model.metadata.MetadataTableVo;
+import com.example.demo.processor.IMetadataDbProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -28,19 +30,24 @@ public class MetadataMysqlProcessor implements IMetadataDbProcessor {
     private static final Map<String, Class> DATA_TYPE_MAP = new HashMap<>();
     static{
         //常用基本类型
+
+        //数字
         DATA_TYPE_MAP.put("bigint", java.lang.Long.class);
         DATA_TYPE_MAP.put("int", java.lang.Integer.class);
         DATA_TYPE_MAP.put("smallint", java.lang.Short.class);
         DATA_TYPE_MAP.put("tinyint", java.lang.Byte.class);
 
+        //浮点
         DATA_TYPE_MAP.put("float", java.lang.Float.class);
         DATA_TYPE_MAP.put("double", java.lang.Double.class);
 
+        //字符
         DATA_TYPE_MAP.put("varchar", java.lang.String.class);
         DATA_TYPE_MAP.put("text", java.lang.String.class);
         DATA_TYPE_MAP.put("mediumtext", java.lang.String.class);
         DATA_TYPE_MAP.put("longtext", java.lang.String.class);
 
+        //时间
         DATA_TYPE_MAP.put("timestamp", java.util.Date.class);
         DATA_TYPE_MAP.put("date", java.util.Date.class);
         DATA_TYPE_MAP.put("datetime", java.util.Date.class);
@@ -153,14 +160,24 @@ public class MetadataMysqlProcessor implements IMetadataDbProcessor {
 
             //获取字段信息
             List<MetadataColumnVo> metadataColumnVos = listTableColumns(dataSourceEntity, dbName, tableNameSet);
+            boolean containsDate = false;
+            boolean containsDatetime = false;
             for(MetadataTableVo loopTable: result){
                 List<MetadataColumnVo> columns = new ArrayList<>();
                 for(MetadataColumnVo loopColumn: metadataColumnVos){
                     if(loopTable.getTableName().equalsIgnoreCase(loopColumn.getTable().getTableName())){
                         columns.add(loopColumn);
+                        if(!containsDate && loopColumn.getIsDate()){
+                            containsDate = true;
+                        }
+                        if(!containsDatetime && loopColumn.getIsDatetime()){
+                            containsDatetime = true;
+                        }
                     }
                 }
                 loopTable.setColumns(columns);
+                loopTable.setContainsDate(containsDate);
+                loopTable.setContainsDatetime(containsDatetime);
             }
         }
         return result;
@@ -226,19 +243,22 @@ public class MetadataMysqlProcessor implements IMetadataDbProcessor {
                 columnVo.setRemark(rs.getString("COLUMN_COMMENT"));
 
                 //非空判断
-//                boolean nullable = isNullable(rs.getString("IS_NULLABLE")); // "YES".equalsIgnoreCase(rs.getString("IS_NULLABLE"))?true:false;
-                columnVo.setNullable(isNullable(rs.getString("IS_NULLABLE")));
+                columnVo.setIsNullable(isNullable(rs.getString("IS_NULLABLE")));
 
                 //字段映射的数据数据类型
-                columnVo.setDataTypeClazz(parseDataType(rs.getString("DATA_TYPE")));
+                String dataType = rs.getString("DATA_TYPE");
+                columnVo.setDataTypeClazz(parseDataType(dataType));
+
+                columnVo.setIsDate(judgeDate(dataType));
+                columnVo.setIsDatetime(judgeDatetime(dataType));
 
                 //主键判断
                 String columnKey = rs.getString("COLUMN_KEY");
-                columnVo.setPrimaryKey("PRI".equalsIgnoreCase(columnKey));
+                columnVo.setIsPrimaryKey("PRI".equalsIgnoreCase(columnKey));
 
                 //自增判断
                 String extra = rs.getString("EXTRA");
-                columnVo.setAutoIncrement("auto_increment".equalsIgnoreCase(extra));
+                columnVo.setIsAutoIncrement("auto_increment".equalsIgnoreCase(extra));
 
                 result.add(columnVo);
             }
@@ -251,7 +271,6 @@ public class MetadataMysqlProcessor implements IMetadataDbProcessor {
         log.info("[MetadataMysqlProcessor][listTableColumns]result:{}, dbName:{}, tableNameSet:{}", result, dbName, tableNameSet);
         return result;
     }
-
 
     /**
      * 释放资源
@@ -283,13 +302,18 @@ public class MetadataMysqlProcessor implements IMetadataDbProcessor {
         }
     }
 
-
+    /**
+     * 解析mysql的数据类型到基本类型
+     * @param dataTypeText
+     * @return
+     */
     public static Class parseDataType(String dataTypeText){
         return parseDataType(dataTypeText, String.class);
     }
 
     /**
      * 解析mysql的数据类型到基本类型
+     * @param dataTypeText
      * @param defaultClass
      * @return
      */
@@ -312,6 +336,31 @@ public class MetadataMysqlProcessor implements IMetadataDbProcessor {
      */
     private static boolean isNullable(String isNullable){
         return "YES".equalsIgnoreCase(isNullable)?true:false;
+    }
+
+
+    /**
+     * 判断是否是日期类型
+     * @param dataType
+     * @return
+     */
+    private boolean judgeDate(String dataType) {
+        if(StringUtils.equalsAnyIgnoreCase(dataType, "date")){
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 判断是否是时间类型
+     * @param dataType
+     * @return
+     */
+    private boolean judgeDatetime(String dataType) {
+        if(StringUtils.equalsAnyIgnoreCase(dataType, "datetime", "timestamp")){
+            return true;
+        }
+        return false;
     }
 
 }

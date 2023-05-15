@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,8 +27,6 @@ public class GenerateTableVo implements Serializable {
 	private String className;
 	/** 原始数据表名称 */
 	private String name;
-//	/** 业务名（英文），通常用在url中的path(RequestMapping)中，以隔离业务， 默认为表名 */
-//	private String businessName = className;
 	/** 原始数据表注释 */
 	private String remark;
 
@@ -37,20 +36,15 @@ public class GenerateTableVo implements Serializable {
 	/** 字段列表 */
 	private List<GenerateColumnVo> columns;
 
-	/** TODO 补充其他属性 */
-
+	/** 保留一些基础属性，以便用于模板生成时使用 */
 
 	/** 是否包含日期类型 */
-	private boolean containsDate(){
-		if(CollectionUtils.isNotEmpty(columns)){
-			for(GenerateColumnVo loop: columns){
-				if(loop.isDate()){
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+	private boolean containsDate;
+	/** 是否包含时间类型 */
+	private boolean containsDatetime;
+
+	/** TODO 补充其他属性 */
+
 
 	/**
 	 * 字段
@@ -72,6 +66,8 @@ public class GenerateTableVo implements Serializable {
 
 		/** 是否是日期字段 */
 		private boolean isDate;
+		/** 是否是时间字段 */
+		private boolean isDatetime;
 		/** 是否是blob字段 */
 		private boolean isBlob;
 

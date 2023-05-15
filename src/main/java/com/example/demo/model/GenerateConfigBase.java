@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.example.demo.consts.Constants;
 import com.example.demo.enums.GenerateTypeEnum;
 import com.example.demo.enums.OutputTypeEnum;
 import com.example.demo.exception.GenericRuntimeException;
@@ -68,6 +69,9 @@ public class GenerateConfigBase implements Serializable {
 
 		@ApiModelProperty(value="要进行替换的表的前缀名，当chooseAll时使用本属性处理")
 		private String tablenamePrefix;
+
+		@ApiModelProperty(value="表对应java类的命名规范，默认为ClassName，支持扩展，详见文档")
+		private String namedType = Constants.NAMED_CLASS_CASE;
 
 		//TODO 字段的扩展能力？
 

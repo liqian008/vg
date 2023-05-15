@@ -1,4 +1,4 @@
-package com.example.demo.metadata.processor;
+package com.example.demo.processor;
 
 import com.example.demo.enums.DbTypeEnum;
 import com.example.demo.model.entity.DataSourceEntity;

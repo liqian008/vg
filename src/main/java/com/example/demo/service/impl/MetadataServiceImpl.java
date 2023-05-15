@@ -1,13 +1,12 @@
 package com.example.demo.service.impl;
 
 
-import com.example.demo.enums.DbTypeEnum;
-import com.example.demo.holder.ApplicationContextHolder;
-import com.example.demo.metadata.processor.IMetadataDbProcessor;
+import com.example.demo.processor.IMetadataDbProcessor;
 import com.example.demo.model.entity.DataSourceEntity;
 import com.example.demo.model.metadata.MetadataColumnVo;
 import com.example.demo.model.metadata.MetadataDatabaseVo;
 import com.example.demo.model.metadata.MetadataTableVo;
+import com.example.demo.processor.ProcessorManager;
 import com.example.demo.service.IMetadataService;
 import com.example.demo.service.entity.IDataSourceEntityService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-
-import static com.example.demo.consts.Constants.METADATA_PROCESSOR_SUFFIX;
 
 /**
  * 元数据service实现
@@ -30,21 +27,23 @@ public class MetadataServiceImpl implements IMetadataService, InitializingBean {
 	@Autowired
 	private IDataSourceEntityService dataSourceEntityService;
 	@Autowired
-	private ApplicationContextHolder applicationContextHolder;
+	private ProcessorManager processorManager;
+//	@Autowired
+//	private ApplicationContextHolder applicationContextHolder;
 
 
-	@Override
-	public IMetadataDbProcessor loadProcessorByDbType(short dbTypeVal) {
-		DbTypeEnum dbTypeEnum = DbTypeEnum.valueOf(dbTypeVal);
-		String beanName = dbTypeEnum.getName() + METADATA_PROCESSOR_SUFFIX;
-		IMetadataDbProcessor result = applicationContextHolder.getApplicationContext().getBean(beanName, IMetadataDbProcessor.class);
-		return result;
-	}
+//	@Override
+//	public IMetadataDbProcessor loadDbProcessorByDbType(short dbTypeVal) {
+//		DbTypeEnum dbTypeEnum = DbTypeEnum.valueOf(dbTypeVal);
+//		String beanName = dbTypeEnum.getName() + METADATA_PROCESSOR_SUFFIX;
+//		IMetadataDbProcessor result = applicationContextHolder.getApplicationContext().getBean(beanName, IMetadataDbProcessor.class);
+//		return result;
+//	}
 
 	@Override
 	public List<MetadataDatabaseVo> listDatabases(int userId, int datasourceId) {
 		DataSourceEntity dataSourceEntity = dataSourceEntityService.loadById(userId, datasourceId, true);
-		IMetadataDbProcessor metadataDbProcessor = loadProcessorByDbType(dataSourceEntity.getDbType());
+		IMetadataDbProcessor metadataDbProcessor = processorManager.loadDbProcessorByDbType(dataSourceEntity.getDbType());
 		List<MetadataDatabaseVo> result = metadataDbProcessor.listDatabases(dataSourceEntity);
 		return result;
 	}
@@ -81,7 +80,7 @@ public class MetadataServiceImpl implements IMetadataService, InitializingBean {
 	@Override
 	public List<MetadataTableVo> listUserTables(int userId, int datasourceId, String dbName) {
 		DataSourceEntity dataSourceEntity = dataSourceEntityService.loadById(userId, datasourceId, true);
-		IMetadataDbProcessor metadataDbProcessor = loadProcessorByDbType(dataSourceEntity.getDbType());
+		IMetadataDbProcessor metadataDbProcessor = processorManager.loadDbProcessorByDbType(dataSourceEntity.getDbType());
 		return metadataDbProcessor.listUserTables(dataSourceEntity, dbName);
 	}
 
@@ -126,7 +125,7 @@ public class MetadataServiceImpl implements IMetadataService, InitializingBean {
 	@Override
 	public List<MetadataTableVo> listUserTables(int userId, int datasourceId, String dbName, Set<String> tableNameSet) {
 		DataSourceEntity dataSourceEntity = dataSourceEntityService.loadById(userId, datasourceId, true);
-		IMetadataDbProcessor metadataDbProcessor = loadProcessorByDbType(dataSourceEntity.getDbType());
+		IMetadataDbProcessor metadataDbProcessor = processorManager.loadDbProcessorByDbType(dataSourceEntity.getDbType());
 		return metadataDbProcessor.listUserTables(dataSourceEntity, dbName, tableNameSet);
 	}
 
@@ -176,7 +175,7 @@ public class MetadataServiceImpl implements IMetadataService, InitializingBean {
     @Override
     public List<MetadataColumnVo> listTableColumns(int userId, int datasourceId, String dbName, Set<String> tableNameSet) {
 		DataSourceEntity dataSourceEntity = dataSourceEntityService.loadById(userId, datasourceId, true);
-		IMetadataDbProcessor metadataDbProcessor = loadProcessorByDbType(dataSourceEntity.getDbType());
+		IMetadataDbProcessor metadataDbProcessor = processorManager.loadDbProcessorByDbType(dataSourceEntity.getDbType());
 		return metadataDbProcessor.listTableColumns(dataSourceEntity, dbName, tableNameSet);
 	}
 
@@ -240,19 +239,19 @@ public class MetadataServiceImpl implements IMetadataService, InitializingBean {
 //				columnVo.setTable(tableVo);
 //				columnVo.setColumn(rs.getString("COLUMN_NAME"));
 //
-//				boolean nullable = "YES".equalsIgnoreCase(rs.getString("IS_NULLABLE"))?true:false;
-//				columnVo.setNullable(nullable);
+//				boolean isNullable = "YES".equalsIgnoreCase(rs.getString("IS_NULLABLE"))?true:false;
+//				columnVo.setIsNullable(isNullable);
 //				columnVo.setDataType(rs.getString("DATA_TYPE"));
 //
 //				//主键判断
 //				String columnKey = rs.getString("COLUMN_KEY");
 ////				columnVo.setColumnKey(columnKey);
-//				columnVo.setPrimaryKey("PRI".equalsIgnoreCase(columnKey));
+//				columnVo.setIsPrimaryKey("PRI".equalsIgnoreCase(columnKey));
 //
 //				//自增判断
 //				String extra = rs.getString("EXTRA");
 ////				columnVo.setExtra(extra);
-//				columnVo.setAutoIncrement("auto_increment".equalsIgnoreCase(extra));
+//				columnVo.setIsAutoIncrement("auto_increment".equalsIgnoreCase(extra));
 //
 //				columnVo.setDefaultValue(rs.getString("COLUMN_DEFAULT"));
 //				columnVo.setLength(rs.getLong("CHARACTER_MAXIMUM_LENGTH"));
