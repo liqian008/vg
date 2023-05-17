@@ -25,7 +25,7 @@ public class ProcessorManager{
      */
     public IMetadataDbProcessor loadDbProcessorByDbType(short dbTypeVal) {
         DbTypeEnum dbTypeEnum = DbTypeEnum.valueOf(dbTypeVal);
-        String beanName = dbTypeEnum.getName() + METADATA_PROCESSOR_SUFFIX;
+        String beanName = dbTypeEnum.getKey() + METADATA_PROCESSOR_SUFFIX;
         IMetadataDbProcessor result = loadBean(beanName, IMetadataDbProcessor.class);
         return result;
     }

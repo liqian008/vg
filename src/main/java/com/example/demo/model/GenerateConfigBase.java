@@ -65,7 +65,6 @@ public class GenerateConfigBase implements Serializable {
 
 		@ApiModelProperty(value="数据表名，当chooseAll时为空")
 		protected List<TableInfo> tables;
-//		protected List<String> tableNames;
 
 		@ApiModelProperty(value="要进行替换的表的前缀名，当chooseAll时使用本属性处理")
 		private String tablenamePrefix;

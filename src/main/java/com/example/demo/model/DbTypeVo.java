@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * 数据库类型的Vo对象
  * @author bruce
  */
 @Data
@@ -25,7 +25,7 @@ public class DbTypeVo implements Serializable {
 		synchronized (DbTypeVo.class){
 			if(dbTypeMap==null){
 				for(DbTypeEnum dbTypeEnum: DbTypeEnum.values()){
-					DbTypeVo dbTypeVo = new DbTypeVo(dbTypeEnum.getValue(), dbTypeEnum.getName());
+					DbTypeVo dbTypeVo = new DbTypeVo(dbTypeEnum.getValue(), dbTypeEnum.getKey());
 					dbTypeMap.put(dbTypeEnum.getValue(), dbTypeVo);
 				}
 			}

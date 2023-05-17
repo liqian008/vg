@@ -32,6 +32,9 @@ public class TemplateEntity implements Serializable {
 	private String templateKey;
 
 	@TableField
+	private String generateType;
+
+	@TableField
 	private Integer version;
 
 	@TableField

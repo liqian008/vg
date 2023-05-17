@@ -10,26 +10,32 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @JsonFormat(shape = JsonFormat.Shape.OBJECT) //将枚举类型序列化为对象
 public enum DbTypeEnum {
 
-	MYSQL((short)0, Constants.DB_TYPE_MSYQL),
-	ORACLE((short)1, Constants.DB_TYPE_ORACLE)
+	MYSQL((short)0, Constants.DB_TYPE_MSYQL, Constants.DB_TYPE_MSYQL),
+	ORACLE((short)1, Constants.DB_TYPE_ORACLE, Constants.DB_TYPE_ORACLE),
+//	UNKNOWN((short)-1, Constants.DB_TYPE_UNKNOWN)
 	;
 
 	private short value;
-	private String name;
+	private String key;
+	private String description;
 
-	DbTypeEnum(short value ,String name) {
+	DbTypeEnum(short value, String key, String description) {
 		this.value = value;
-		this.name = name;
+		this.key = key;
+		this.description = description;
 	}
 
 	public short getValue() {
 		return value;
 	}
 
-	public String getName() {
-		return name;
+	public String getKey() {
+		return key;
 	}
 
+	public String getDescription() {
+		return description;
+	}
 
 	public static DbTypeEnum valueOf(short value){
 		DbTypeEnum result = null;

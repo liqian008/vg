@@ -47,6 +47,8 @@ public interface Constants {
 	String DB_TYPE_MSYQL = "MYSQL";
 	/** Oracle数据库类型 */
 	String DB_TYPE_ORACLE = "ORACLE";
+	/** 未知数据库类型 */
+	String DB_TYPE_UNKNOWN = "UNKNOWN";
 
 	/** 首字母大写 */
 	String NAMED_CAMEL_CASE = "camel";

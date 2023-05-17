@@ -25,31 +25,49 @@ import java.util.stream.Collectors;
 @Service(Constants.DB_TYPE_MSYQL + Constants.METADATA_PROCESSOR_SUFFIX)
 public class MetadataMysqlProcessor implements IMetadataDbProcessor {
 
+    public static final String TYPE_TINYINT= "tinyint";
+    public static final String TYPE_SMALLINT= "smallint";
+    public static final String TYPE_INT= "int";
+    public static final String TYPE_BIGINT= "bigint";
+
+    public static final String TYPE_FLOAT= "float";
+    public static final String TYPE_DOUBLE = "double";
+
+    public static final String TYPE_VARCHAR = "varchar";
+    public static final String TYPE_TEXT = "text";
+    public static final String TYPE_MEDIUMTEXT = "mediumtext";
+    public static final String TYPE_LONGTEXT = "longtext";
+
+    public static final String TYPE_TIMESTAMP = "timestamp";
+    public static final String TYPE_DATE = "date";
+    public static final String TYPE_DATETIME = "datetime";
+
+
     /** 数据类型映射， TODO  */
     private static final Map<String, Class> DATA_TYPE_MAP = new HashMap<>();
     static{
         //常用基本类型
 
         //数字
-        DATA_TYPE_MAP.put("bigint", java.lang.Long.class);
-        DATA_TYPE_MAP.put("int", java.lang.Integer.class);
-        DATA_TYPE_MAP.put("smallint", java.lang.Short.class);
-        DATA_TYPE_MAP.put("tinyint", java.lang.Byte.class);
+        DATA_TYPE_MAP.put(TYPE_TINYINT, java.lang.Byte.class);
+        DATA_TYPE_MAP.put(TYPE_SMALLINT, java.lang.Short.class);
+        DATA_TYPE_MAP.put(TYPE_INT, java.lang.Integer.class);
+        DATA_TYPE_MAP.put(TYPE_BIGINT, java.lang.Long.class);
 
         //浮点
-        DATA_TYPE_MAP.put("float", java.lang.Float.class);
-        DATA_TYPE_MAP.put("double", java.lang.Double.class);
+        DATA_TYPE_MAP.put(TYPE_FLOAT, java.lang.Float.class);
+        DATA_TYPE_MAP.put(TYPE_DOUBLE, java.lang.Double.class);
 
         //字符
-        DATA_TYPE_MAP.put("varchar", java.lang.String.class);
-        DATA_TYPE_MAP.put("text", java.lang.String.class);
-        DATA_TYPE_MAP.put("mediumtext", java.lang.String.class);
-        DATA_TYPE_MAP.put("longtext", java.lang.String.class);
+        DATA_TYPE_MAP.put(TYPE_VARCHAR, java.lang.String.class);
+        DATA_TYPE_MAP.put(TYPE_TEXT, java.lang.String.class);
+        DATA_TYPE_MAP.put(TYPE_MEDIUMTEXT, java.lang.String.class);
+        DATA_TYPE_MAP.put(TYPE_LONGTEXT, java.lang.String.class);
 
         //时间
-        DATA_TYPE_MAP.put("timestamp", java.util.Date.class);
-        DATA_TYPE_MAP.put("date", java.util.Date.class);
-        DATA_TYPE_MAP.put("datetime", java.util.Date.class);
+        DATA_TYPE_MAP.put(TYPE_TIMESTAMP, java.util.Date.class);
+        DATA_TYPE_MAP.put(TYPE_DATE, java.util.Date.class);
+        DATA_TYPE_MAP.put(TYPE_DATETIME, java.util.Date.class);
 
         //其他类型暂时不做支持(均使用String类型)
     }
@@ -248,8 +266,8 @@ public class MetadataMysqlProcessor implements IMetadataDbProcessor {
                 String dataType = rs.getString("DATA_TYPE");
                 columnVo.setDataTypeClazz(parseDataType(dataType));
 
-                columnVo.setIsDate(judgeDate(dataType));
-                columnVo.setIsDatetime(judgeDatetime(dataType));
+                columnVo.setIsDate(isDateType(dataType));
+                columnVo.setIsDatetime(isDatetimeType(dataType));
 
                 //主键判断
                 String columnKey = rs.getString("COLUMN_KEY");
@@ -343,8 +361,8 @@ public class MetadataMysqlProcessor implements IMetadataDbProcessor {
      * @param dataType
      * @return
      */
-    private boolean judgeDate(String dataType) {
-        if(StringUtils.equalsAnyIgnoreCase(dataType, "date")){
+    private boolean isDateType(String dataType) {
+        if(StringUtils.equalsAnyIgnoreCase(dataType, TYPE_DATE)){
             return true;
         }
         return false;
@@ -355,8 +373,8 @@ public class MetadataMysqlProcessor implements IMetadataDbProcessor {
      * @param dataType
      * @return
      */
-    private boolean judgeDatetime(String dataType) {
-        if(StringUtils.equalsAnyIgnoreCase(dataType, "datetime", "timestamp")){
+    private boolean isDatetimeType(String dataType) {
+        if(StringUtils.equalsAnyIgnoreCase(dataType, TYPE_DATETIME, TYPE_TIMESTAMP)){
             return true;
         }
         return false;
