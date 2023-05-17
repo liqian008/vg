@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.model.FileDownloadVo;
+import com.example.demo.model.GenerateResultVo;
 import com.example.demo.model.GenerateConfigBase;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +18,7 @@ public interface IGenerateService {
 	 * @param generateConfig
 	 * @return
 	 */
-	FileDownloadVo generate(GenerateConfigBase generateConfig) throws Exception;
+	GenerateResultVo generate(GenerateConfigBase generateConfig) throws Exception;
 
 	/**
 	 * 上传模板文件

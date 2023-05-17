@@ -6,6 +6,7 @@
 // * 命名的枚举（支持扩展）
 // * @author bruce
 // */
+//@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 //public enum NamedTypeEnum {
 //
 //	/** "驼峰" */

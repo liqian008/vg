@@ -1,9 +1,12 @@
 package com.example.demo.enums;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 /**
  * 生成类型的枚举
  * @author bruce
  */
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum GenerateTypeEnum {
 
 	PROJECT((short)0,"项目工程"),
@@ -13,7 +16,7 @@ public enum GenerateTypeEnum {
 	private short value;
 	private String description;
 
-	GenerateTypeEnum(short value , String description) {
+	GenerateTypeEnum(short value, String description) {
 		this.value = value;
 		this.description = description;
 	}

@@ -1,11 +1,13 @@
 package com.example.demo.enums;
 
 import com.example.demo.consts.Constants;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * 数据库类型的枚举
  * @author bruce
  */
+@JsonFormat(shape = JsonFormat.Shape.OBJECT) //将枚举类型序列化为对象
 public enum DbTypeEnum {
 
 	MYSQL((short)0, Constants.DB_TYPE_MSYQL),

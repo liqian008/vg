@@ -1,9 +1,12 @@
 package com.example.demo.enums;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 /**
  * 输出类型的枚举
  * @author bruce
  */
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum OutputTypeEnum {
 
 	FILES((short)0,"直接生成代码文件，通常用于本地部署场景"),

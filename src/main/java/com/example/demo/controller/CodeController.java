@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.consts.Constants;
-import com.example.demo.model.FileDownloadVo;
+import com.example.demo.model.GenerateResultVo;
 import com.example.demo.model.GenerateConfigBase;
 import com.example.demo.model.ResponseContent;
 import com.example.demo.service.IGenerateService;
@@ -44,9 +44,9 @@ public class CodeController {
 
 	@PostMapping("/generate")
 	@ApiOperation(value="根据指定的模板和参数，生成代码")
-	public ResponseContent<FileDownloadVo> generate(@RequestBody GenerateConfigBase generateConfig) throws Exception {
+	public ResponseContent<GenerateResultVo> generate(@RequestBody GenerateConfigBase generateConfig) throws Exception {
 		log.info("[generate]enter, generateConfig:{}", generateConfig);
-		FileDownloadVo result = generateService.generate(generateConfig);
+		GenerateResultVo result = generateService.generate(generateConfig);
 		return ResponseContent.buildSuccessResult(result);
 	}
 

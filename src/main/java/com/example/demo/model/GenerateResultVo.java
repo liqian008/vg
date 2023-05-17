@@ -3,6 +3,7 @@ package com.example.demo.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,11 +15,15 @@ import java.io.Serializable;
  */
 @ApiModel(value="文件下载对象")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FileDownloadVo implements Serializable {
+public class GenerateResultVo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	@ApiModelProperty("生成类型")
+	private String outputType;
 
 	@ApiModelProperty("文件名")
 	private String filename;

@@ -95,6 +95,9 @@ public class GenerateConfigBase implements Serializable {
 		@ApiModelProperty(value="要进行替换的表的前缀名，支持针对性替换")
 		private String tablenamePrefix;
 
+		@ApiModelProperty(value="业务名，用于自定义扩展")
+		private String businessName;
+
 		@ApiModelProperty(value="表的自定义扩展数据，提供模板数据的良好扩展性")
 		private Map<String, Object> extraData;
 

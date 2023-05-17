@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -29,6 +28,9 @@ public class GenerateTableVo implements Serializable {
 	private String name;
 	/** 原始数据表注释 */
 	private String remark;
+
+	@ApiModelProperty(value="业务名，用于自定义扩展")
+	private String businessName;
 
 	/** 表的自定义扩展数据，提供模板数据的良好扩展性 */
 	private Map<String, Object> extraData;
@@ -54,6 +56,7 @@ public class GenerateTableVo implements Serializable {
 	@AllArgsConstructor
 	@NoArgsConstructor
 	public static class GenerateColumnVo{
+
 		/** 原始字段名 */
 		private String name;
 		/** 原始字段注释 */
@@ -63,6 +66,13 @@ public class GenerateTableVo implements Serializable {
 		private String fieldType;
 		/** 字段名称（需要根据情况做驼峰等处理） */
 		private String fieldName;
+
+//		/** 是否是数字类型 */
+//		private boolean isInteger;
+//		/** 是否是小数类型 */
+//		private boolean isDecimal;
+//		/** 是否是文本类型 */
+//		private boolean isVarchar;
 
 		/** 是否是日期字段 */
 		private boolean isDate;

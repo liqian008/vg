@@ -1,9 +1,12 @@
 package com.example.demo.enums;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 /**
  * 模版来源的枚举
  * @author bruce
  */
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum TemplateSourceTypeEnum {
 
 	OFFICIAL((short)0,"官方", "官方模板"),

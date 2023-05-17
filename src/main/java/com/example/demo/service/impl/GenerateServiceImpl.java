@@ -6,6 +6,7 @@ import cn.org.rapid_framework.generator.GeneratorProperties;
 import cn.org.rapid_framework.generator.util.ZipUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.demo.consts.Constants;
+import com.example.demo.enums.OutputTypeEnum;
 import com.example.demo.model.*;
 import com.example.demo.model.entity.TemplateEntity;
 import com.example.demo.model.metadata.MetadataColumnVo;
@@ -88,7 +89,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 	 * @param generateConfig
 	 * @return
 	 */
-	@Override public FileDownloadVo generate(GenerateConfigBase generateConfig) throws Exception {
+	@Override public GenerateResultVo generate(GenerateConfigBase generateConfig) throws Exception {
 		//TODO 校验参数
 		String templateKey = generateConfig.getTemplateKey();
 		synchronized (templateKey.intern()) {
@@ -111,8 +112,11 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 			//File destTemplateDir = new File(outputRootDir, templateName);
 			//处理文件
 			String filename = processOutputFile(generateConfig, outputRootDir);
-			FileDownloadVo result = new FileDownloadVo(filename, "/code/download?filename=" + filename);
-
+			String downloadUrl = null;
+			if(StringUtils.equalsIgnoreCase(generateConfig.getOutputType(), OutputTypeEnum.FILE_ZIP.name())){
+				downloadUrl = "/code/download?filename=" + filename;
+			}
+			GenerateResultVo result = GenerateResultVo.builder().outputType(generateConfig.getOutputType()).filename(filename).downloadUrl(downloadUrl).build();
 			log.info("[generate]result:{}, generateConfig:{}", result, generateConfig);
 			return result;
 		}
@@ -329,7 +333,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 			// 根据配置，获取元数据信息
 			int datasourceId = generateConfig.getTableCrudConfig().getDatasourceId();
 			String dbName = generateConfig.getTableCrudConfig().getDbName();
-			List<GenerateConfigBase.TableInfo> tables = generateConfig.getTableCrudConfig().getTables();
+			List<GenerateConfigBase.TableInfo> tables = generateConfig.getTableCrudConfig().isChooseAll()?null:generateConfig.getTableCrudConfig().getTables();
 			List<String> tableNames = tables==null?null:tables.stream().map(item->item.getTableName()).collect(Collectors.toList());
 
 			List<MetadataTableVo> metadataTableVos = metadataService.listUserTables(1, datasourceId, dbName, tableNames==null?null:new HashSet<>(tableNames));
@@ -371,6 +375,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 		if(CollectionUtils.isNotEmpty(metadataTableVos)){
 
 			String globalTablenamePrefix = null;
+			final Map<String, String> businessNamePrefixMap = new HashMap<>();
 			final Map<String, String> tablenamePrefixMap = new HashMap<>();
 			final Map<String, Map<String, Object>> tableExtraDataMap = new HashMap<>();
 			String namedType = generateConfig.getTableCrudConfig().getNamedType();
@@ -381,6 +386,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 				//非全局模式，则需逐一替换表名的前缀，先构造表名的map数据做缓存
 				generateConfig.getTableCrudConfig().getTables().stream().forEach(
 						item -> {
+							businessNamePrefixMap.put(item.getTableName(), item.getBusinessName());
 							tablenamePrefixMap.put(item.getTableName(), item.getTablenamePrefix());
 							tableExtraDataMap.put(item.getTableName(), item.getExtraData());
 						});
@@ -397,19 +403,22 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 
 				//类名的命名（支持自定义扩展）
 				INamedProcessor tableNameProcessor = processorManager.loadNamedProcessor(namedType);
-//				INamedProcessor tableNameProcessor = applicationContextHolder.getApplicationContext().getBean(namedType + METADATA_PROCESSOR_SUFFIX, INamedProcessor.class);
 				String className = tableNameProcessor.processName(StringUtils.replace(loopTable.getTableName(), tablenamePrefix, ""));
 
 				//原始表名
 				String tableName = loopTable.getTableName();
 				GenerateTableVo tableVo = GenerateTableVo.builder()
 						.name(loopTable.getTableName()).remark(loopTable.getRemark()).className(className).build();
+				tableVo.setExtraData(tableExtraDataMap.get(tableName));
+				//businessName默认为className
+				tableVo.setBusinessName(StringUtils.isBlank(businessNamePrefixMap.get(tableName))?className:businessNamePrefixMap.get(tableName));
+				tableVo.setContainsDate(loopTable.isContainsDate());
+				tableVo.setContainsDatetime(loopTable.isContainsDatetime());
 
+				//处理字段
 				List<GenerateTableVo.GenerateColumnVo> columnVos = new ArrayList<>();
-
 				//字段（Field）的命名（支持自定义扩展）
 				INamedProcessor fieldNameProcessor = processorManager.loadNamedProcessor("camel");
-//				INamedProcessor fieldNameProcessor = applicationContextHolder.getApplicationContext().getBean("camel" + METADATA_PROCESSOR_SUFFIX, INamedProcessor.class);
 
 				List<MetadataColumnVo> columns = loopTable.getColumns();
 				for(MetadataColumnVo loopColumn: columns){
@@ -424,10 +433,7 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 					columnVos.add(columnVo);
 				}
 				tableVo.setColumns(columnVos);
-				tableVo.setExtraData(tableExtraDataMap.get(tableName));
 
-				tableVo.setContainsDate(loopTable.isContainsDate());
-				tableVo.setContainsDatetime(loopTable.isContainsDatetime());
 				result.add(tableVo);
 			}
 		}
