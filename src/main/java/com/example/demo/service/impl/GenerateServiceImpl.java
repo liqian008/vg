@@ -408,12 +408,13 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 				//原始表名
 				String tableName = loopTable.getTableName();
 				GenerateTableVo tableVo = GenerateTableVo.builder()
-						.name(loopTable.getTableName()).remark(loopTable.getRemark()).className(className).build();
-				tableVo.setExtraData(tableExtraDataMap.get(tableName));
-				//businessName默认为className
-				tableVo.setBusinessName(StringUtils.isBlank(businessNamePrefixMap.get(tableName))?className:businessNamePrefixMap.get(tableName));
-				tableVo.setContainsDate(loopTable.isContainsDate());
-				tableVo.setContainsDatetime(loopTable.isContainsDatetime());
+						.dbName(loopTable.getDatabase().getDbName()).name(loopTable.getTableName()).remark(loopTable.getRemark())
+						.className(className)
+						//businessName默认为className
+						.businessName(StringUtils.isBlank(businessNamePrefixMap.get(tableName))?className:businessNamePrefixMap.get(tableName))
+						.containsDate(loopTable.isContainsDatetime()).containsDatetime(loopTable.isContainsDatetime())
+						.extraData(tableExtraDataMap.get(tableName))
+						.build();
 
 				//处理字段
 				List<GenerateTableVo.GenerateColumnVo> columnVos = new ArrayList<>();
@@ -424,12 +425,12 @@ public class GenerateServiceImpl implements IGenerateService, InitializingBean {
 				for(MetadataColumnVo loopColumn: columns){
 					String fieldName = fieldNameProcessor.processName(loopColumn.getColumn());
 					GenerateTableVo.GenerateColumnVo columnVo = GenerateTableVo.GenerateColumnVo.builder()
-							.name(loopColumn.getColumn()).remark(loopColumn.getRemark()).fieldType(loopColumn.getDataType())
-							.isDate(loopColumn.getIsDate())
-							.isDatetime(loopColumn.getIsDatetime())
-							//驼峰
-							.fieldName(fieldName)
-							.build();
+						.name(loopColumn.getColumn()).remark(loopColumn.getRemark()).fieldType(loopColumn.getDataType())
+						.isDate(loopColumn.getIsDate()).isDatetime(loopColumn.getIsDatetime())
+						.isNullable(loopColumn.getIsNullable()).isPrimaryKey(loopColumn.getIsPrimaryKey()).isAutoIncrement(loopColumn.getIsAutoIncrement())
+						//驼峰
+						.fieldName(fieldName)
+						.build();
 					columnVos.add(columnVo);
 				}
 				tableVo.setColumns(columnVos);

@@ -22,13 +22,15 @@ public class GenerateTableVo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	/** 类名（需要根据情况做驼峰等处理） */
-	private String className;
+	/** 数据库名称 */
+	private String dbName;
 	/** 原始数据表名称 */
 	private String name;
 	/** 原始数据表注释 */
 	private String remark;
 
+	/** 类名（需要根据情况做驼峰等处理） */
+	private String className;
 	@ApiModelProperty(value="业务名，用于自定义扩展")
 	private String businessName;
 
@@ -73,6 +75,13 @@ public class GenerateTableVo implements Serializable {
 //		private boolean isDecimal;
 //		/** 是否是文本类型 */
 //		private boolean isVarchar;
+
+		/** 是否是唯一主键 */
+		private Boolean isPrimaryKey;
+		/** 是否自增 */
+		private Boolean isAutoIncrement;
+		/** 是否为空 */
+		private Boolean isNullable;
 
 		/** 是否是日期字段 */
 		private boolean isDate;
