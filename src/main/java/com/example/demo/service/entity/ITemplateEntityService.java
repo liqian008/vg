@@ -1,8 +1,8 @@
 package com.example.demo.service.entity;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.demo.model.TemplateVo;
-import com.example.demo.model.TemplateEntity;
+import com.example.demo.model.vo.TemplateVo;
+import com.example.demo.model.entity.TemplateEntity;
 
 import java.io.File;
 import java.util.List;
