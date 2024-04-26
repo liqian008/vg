@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -10,12 +10,12 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 用户Entity
+ * 组Entity
  * @author bruce
  */
 @Data
-@TableName("tb_user")
-public class UserEntity implements Serializable {
+@TableName("tb_group")
+public class GroupEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -23,19 +23,19 @@ public class UserEntity implements Serializable {
 	private Integer id;
 
 	@TableField
-	private String username;
+	private String name;
 
 	@TableField
-	private String nickname;
-
-	@TableField
-	private String avatarUrl;
-
-	@TableField
-	private String email;
+	private String avatar;
 
 	@TableField
 	private short status;
+
+	@TableField
+	private Integer createUid;
+
+	@TableField
+	private Integer updateUid;
 
 	@TableField
 	private Date createTime;

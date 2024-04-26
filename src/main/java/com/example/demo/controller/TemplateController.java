@@ -2,7 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.consts.Constants;
 import com.example.demo.model.ResponseContent;
-import com.example.demo.model.TemplateVo;
+import com.example.demo.model.vo.TemplateVo;
 import com.example.demo.service.IGenerateService;
 import com.example.demo.service.entity.ITemplateEntityService;
 import io.swagger.annotations.Api;

@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.consts.Constants;
-import com.example.demo.model.FileDownloadVo;
+import com.example.demo.model.vo.FileDownloadVo;
 import com.example.demo.model.GenerateConfigBase;
 import com.example.demo.model.ResponseContent;
 import com.example.demo.service.IGenerateService;

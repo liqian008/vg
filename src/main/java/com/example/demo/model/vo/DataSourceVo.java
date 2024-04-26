@@ -1,5 +1,6 @@
-package com.example.demo.model;
+package com.example.demo.model.vo;
 
+import com.example.demo.model.entity.DataSourceEntity;
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

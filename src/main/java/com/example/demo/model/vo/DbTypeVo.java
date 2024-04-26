@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.model.vo;
 
 import com.example.demo.enums.DbTypeEnum;
 import lombok.AllArgsConstructor;

@@ -1,7 +1,7 @@
 package com.example.demo.service.entity;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.demo.model.GroupEntity;
+import com.example.demo.model.entity.GroupEntity;
 
 /**
  * 组EntityService

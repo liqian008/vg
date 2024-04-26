@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.model.FileDownloadVo;
+import com.example.demo.model.vo.FileDownloadVo;
 import com.example.demo.model.GenerateConfigBase;
 import org.springframework.web.multipart.MultipartFile;
 

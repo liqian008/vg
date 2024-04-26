@@ -1,5 +1,6 @@
-package com.example.demo.model;
+package com.example.demo.model.vo;
 
+import com.example.demo.model.entity.TemplateEntity;
 import com.example.demo.util.JsonUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
